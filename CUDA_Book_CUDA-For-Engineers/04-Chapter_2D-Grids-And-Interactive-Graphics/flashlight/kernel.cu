@@ -2,7 +2,7 @@
 #define TX 32
 #define TY 32
 
-__device__ int clip(int n){
+__device__ unsigned char clip(int n){
     return n>255? 255 : (n<0?0:n);
 }
 
