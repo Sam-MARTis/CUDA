@@ -1,0 +1,26 @@
+HOLY FUCKING SHIT.
+
+For three hours I was debugging and I finally got it. Wow.
+Error:
+Flashlight app was displaying just black
+
+Bit of error searching: 
+Error mapping resources: Invalid resource handle
+
+Traced the error back to the cuda resource registering. It wasnt registering the buffer properly 
+cudaGraphicsGLRegisterBuffer(&cuda_pbo_resource, pbo, cudaGraphicsMapFlagsWriteDiscard);
+
+The buffer was properly created (something that took me 45 mins to verify painstakingly)
+After console logging a lot of stuff and chatgpting the hell out of everything to understand what the fuck was going on...
+I found a good ol' post on Nvidia's forum.
+The likely culprit(after eliminating a bunch of others) was my openGL. 
+It wasnt a driver compatibility or interop issue(something i spent a significant amount of brain power meticulously checking)
+It was the fact that my openGL was creating it's context on the wrong gpu
+I have an integrated Intel gpu and a discrete NVIDIA gpu. OpenGL was using the former to create it's context and that was fucking with everything.
+So i forced it to use discrete gpu and boom, even my original code workedd without any modification necessary
+
+Remember to use this to force opengl to open its context using the nvidia gpu
+
+export __NV_PRIME_RENDER_OFFLOAD=1
+export __GLX_VENDOR_LIBRARY_NAME=nvidia
+./main.exe
