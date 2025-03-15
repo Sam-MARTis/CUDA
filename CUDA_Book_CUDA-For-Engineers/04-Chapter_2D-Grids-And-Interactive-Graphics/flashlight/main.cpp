@@ -64,4 +64,38 @@ void initGLUT(int *argc, char **argv)
 #endif
 }
 
+void initPixelBuffer(){
+    glGenBuffers(1, &pbo);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, 4*W*H*sizeof(GLubyte), 0, GL_STREAM_DRAW);
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    cudaGraphicsGLRegisterBuffer(&cuda_pbo_resource, pbo, cudaGraphicsMapFlagsWriteDiscard);
+}
 
+void exitfunc() {
+    if (pbo)
+    {
+        cudaGraphicsUnregisterResource(cuda_pbo_resource);
+        glDeleteBuffers(1, &pbo);
+        glDeleteTextures(1, &tex);
+    }
+}
+
+
+
+int main(int argc, char** argv){
+    printInstructions();
+    initGLUT(&argc, argv);
+    gluOrtho2D(0, W, H, 0);
+    glutKeyboardFunc(keyboard);
+    glutSpecialFunc(handleSpecialKeypress);
+    glutPassiveMotionFunc(mouseMove);
+    glutMotionFunc(mouseDrag);
+    glutDisplayFunc(display);
+    initPixelBuffer();
+    glutMainLoop();
+    atexit(exitfunc);
+    return 0;
+}
