@@ -19,7 +19,7 @@
 // texture and pixel objects
 GLuint pbo = 0; // OpenGL pixel buffer object
 GLuint tex = 0; // OpenGL texture object
-struct cudaGraphicsResource *cuda_pbo_resource;
+cudaGraphicsResource *cuda_pbo_resource;
 
 void checkGLError(const char *label)
 {
@@ -28,6 +28,17 @@ void checkGLError(const char *label)
     {
         printf("OpenGL error at %s: %s\n", label, gluErrorString(err));
     }
+}
+void printOpenGLInfo() {
+    const GLubyte* renderer = glGetString(GL_RENDERER);    // Renderer string
+    const GLubyte* vendor = glGetString(GL_VENDOR);        // Vendor string
+    const GLubyte* version = glGetString(GL_VERSION);      // OpenGL version string
+    const GLubyte* glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);  // GLSL version string
+    
+    printf("Renderer: %s\n", renderer);
+    printf("Vendor: %s\n", vendor);
+    printf("OpenGL Version: %s\n", version);
+    printf("GLSL Version: %s\n", glslVersion);
 }
 
 void render()
@@ -114,8 +125,9 @@ void initPixelBuffer()
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
     checkGLError("glBindBuffer - Verify Binding");
 
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, 4 * W * H * sizeof(GLubyte), 0, GL_DYNAMIC_DRAW);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, 4 * 600 * 600 * sizeof(GLubyte), 0, GL_STREAM_DRAW);
     checkGLError("glBufferData - GL_DYNAMIC_DRAW");
+    // glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0); 
 
     // Verify PBO buffer size
     GLint bufferSize = 0;
@@ -153,12 +165,15 @@ void initPixelBuffer()
     }
 
     cudaError_t contextError = cudaFree(0); // Initialize CUDA context
-if (contextError != cudaSuccess) {
-    printf("CUDA context initialization error: %s\n", cudaGetErrorString(contextError));
-}else{
-    printf("CUDA context initialized\n");
-}
-
+    if (contextError != cudaSuccess)
+    {
+        printf("CUDA context initialization error: %s\n", cudaGetErrorString(contextError));
+    }
+    else
+    {
+        printf("CUDA context initialized\n");
+    }
+    cudaGraphicsResource *cuda_pbo_resource;
 
     cudaError_t err = cudaGraphicsGLRegisterBuffer(&cuda_pbo_resource, pbo, cudaGraphicsMapFlagsWriteDiscard);
     if (err != cudaSuccess)
@@ -201,8 +216,11 @@ int main(int argc, char **argv)
     // cudaGetDeviceCount(dev);
     // printf("No of gpus: %d\n",*dev);
     // cudaSetDevice(0); // or whichever GPU OpenGL is using
+    cudaSetDevice(0);  // If GPU 0 is where OpenGL context is running
+
 
     initGLUT(&argc, argv);
+    printOpenGLInfo();
 
     gluOrtho2D(0, W, H, 0);
     glutKeyboardFunc(keyboard);
@@ -212,7 +230,7 @@ int main(int argc, char **argv)
     glutDisplayFunc(display);
 
     initPixelBuffer();
-    // glutMainLoop();
+    glutMainLoop();
     atexit(exitfunc);
 
     return 0;

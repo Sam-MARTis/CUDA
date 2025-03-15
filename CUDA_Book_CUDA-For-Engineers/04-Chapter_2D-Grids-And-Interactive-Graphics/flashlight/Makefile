@@ -1,10 +1,10 @@
 UNAME_S := $(shell uname)
 
 ifeq ($(UNAME_S), Darwin)
-	LDFLAGS = -Xlinker -framework,OpenGL -Xlinker -framework,GLUT
+    LDFLAGS = -Xlinker -framework -Xlinker OpenGL -Xlinker -framework -Xlinker GLUT
 else
-	LDFLAGS += -L/usr/local/cuda/lib64
-	LDFLAGS += -lglut -lGL -lGLU -lGLEW
+    LDFLAGS = -L/usr/local/cuda/lib64
+    LDFLAGS += -lglut -lGL -lGLU -lGLEW
 endif
 
 NVCC = /usr/local/cuda/bin/nvcc
