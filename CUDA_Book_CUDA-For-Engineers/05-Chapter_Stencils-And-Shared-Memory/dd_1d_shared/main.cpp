@@ -4,7 +4,7 @@
 
 int main(){
     const float PI = 3.1415927;
-    const int N = 150;
+    const int N = 450;
     const float h = 2*PI/N;
 
     float x[N] = {0.0};
@@ -13,7 +13,7 @@ int main(){
 
     for(int i = 0; i< N; i++){
         x[i] = i*h;
-        u[N] = sinf(x[i]);
+        u[i] = sinf(x[i]);
     }
 
     ddParallel(result_parallel, u, N, h);
